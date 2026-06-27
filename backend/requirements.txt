@@ -1,0 +1,9 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+pymongo
+dnspython
+firebase-admin
+gunicorn
+whitenoise
+django-cors-headers
