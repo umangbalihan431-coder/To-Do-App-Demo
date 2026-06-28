@@ -5,7 +5,9 @@ from .views import (
     protected_test,
     todos,
     todo_detail,
-    save_fcm_token,   
+    save_fcm_token,
+    upload_image,
+    user_images,
 )
 
 urlpatterns = [
@@ -16,4 +18,8 @@ urlpatterns = [
     path('todos/', todos),
     path('todos/<str:todo_id>/', todo_detail),
 
-    path('save-fcm-token/', save_fcm_token), ]  
+    path('save-fcm-token/', save_fcm_token),
+
+    path('upload-image/', upload_image),
+    path('user-images/', user_images),
+]

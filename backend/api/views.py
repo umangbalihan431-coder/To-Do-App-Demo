@@ -1,8 +1,9 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from bson import ObjectId
-from db import users_collection, todos_collection, fcm_tokens_collection
-from firebase_admin import messaging
+from db import users_collection, todos_collection, fcm_tokens_collection, images_collection
+from s3 import upload_image_to_s3
+from datetime import datetime, timezone
 import firebase_config
 
 from rest_framework.decorators import api_view, permission_classes
@@ -193,3 +194,44 @@ def save_fcm_token(request):
         "message": "FCM token saved successfully",
         "user_email": user_email,
     }, status=200)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_image(request):
+    user_email = request.user.email
+    image_file = request.FILES.get("image")
+
+    if not image_file:
+        return Response({"error": "Image file is required"}, status=400)
+
+    try:
+        image_url, s3_key = upload_image_to_s3(image_file, user_email)
+
+        image_doc = {
+            "user_email": user_email,
+            "image_url": image_url,
+            "s3_key": s3_key,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        result = images_collection.insert_one(image_doc)
+        image_doc["_id"] = str(result.inserted_id)
+
+        return Response(image_doc, status=201)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_images(request):
+    user_email = request.user.email
+
+    images = list(
+        images_collection.find({"user_email": user_email}).sort("created_at", -1)
+    )
+
+    for image in images:
+        image["_id"] = str(image["_id"])
+
+    return Response(images, status=200)
