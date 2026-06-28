@@ -2,6 +2,14 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
+
+print("ENV PATH =", BASE_DIR / ".env")
+print("AWS KEY =", os.getenv("AWS_ACCESS_KEY_ID"))
 
 
 def main():
