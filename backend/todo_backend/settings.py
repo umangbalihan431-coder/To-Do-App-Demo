@@ -1,9 +1,12 @@
+from dotenv import load_dotenv
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-todo-app-secret-key")
+SECRET_KEY = os.environ.get("SECRET_KEY", "4!mP@9kL#2xQv8N$wR7zYpL1cF6eA^uT3nB5sD9gH2jK7mX")
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
