@@ -1,9 +1,15 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from bson import ObjectId
-from db import users_collection, todos_collection, fcm_tokens_collection, images_collection
+from db import (
+    users_collection,
+    todos_collection,
+    fcm_tokens_collection,
+    images_collection,
+)
 from s3 import upload_image_to_s3
 from datetime import datetime, timezone
+from firebase_admin import messaging
 import firebase_config
 
 from rest_framework.decorators import api_view, permission_classes
@@ -75,6 +81,7 @@ def login_user(request):
         'refresh': str(refresh),
         'email': email,
     }, status=200)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -194,6 +201,8 @@ def save_fcm_token(request):
         "message": "FCM token saved successfully",
         "user_email": user_email,
     }, status=200)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def upload_image(request):
@@ -235,3 +244,26 @@ def user_images(request):
         image["_id"] = str(image["_id"])
 
     return Response(images, status=200)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_image(request, image_id):
+    user_email = request.user.email
+
+    try:
+        object_id = ObjectId(image_id)
+    except Exception:
+        return Response({"error": "Invalid image ID"}, status=400)
+
+    image = images_collection.find_one({
+        "_id": object_id,
+        "user_email": user_email,
+    })
+
+    if image is None:
+        return Response({"error": "Image not found"}, status=404)
+
+    images_collection.delete_one({"_id": object_id})
+
+    return Response({"message": "Image deleted"}, status=200)

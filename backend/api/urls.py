@@ -8,6 +8,7 @@ from .views import (
     save_fcm_token,
     upload_image,
     user_images,
+    delete_image,
 )
 
 urlpatterns = [
@@ -22,4 +23,5 @@ urlpatterns = [
 
     path('upload-image/', upload_image),
     path('user-images/', user_images),
+    path('user-images/<str:image_id>/', delete_image),
 ]
