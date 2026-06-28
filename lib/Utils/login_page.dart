@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'api_service.dart';
 import '../home_page.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -99,6 +100,25 @@ class _LoginPageState extends State<LoginPage> {
           tokenStatus =
               "JWT Token saved:\n${accessToken.toString().substring(0, 40)}...";
         });
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+
+if (fcmToken != null) {
+  final fcmResponse = await http.post(
+    Uri.parse(ApiService.saveFcmTokenUrl),
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer ${data["access"]}",
+    },
+    body: jsonEncode({
+      "fcm_token": fcmToken,
+    }),
+  );
+
+  debugPrint("FCM SAVE STATUS: ${fcmResponse.statusCode}");
+  debugPrint("FCM SAVE BODY: ${fcmResponse.body}");
+} else {
+  debugPrint("FCM TOKEN IS NULL");
+}
 
         Navigator.pushReplacement(
           context,

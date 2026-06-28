@@ -1,8 +1,7 @@
-from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password, check_password
 from bson import ObjectId
-
-from db import todos_collection, fcm_tokens_collection
+from db import users_collection, todos_collection, fcm_tokens_collection
 from firebase_admin import messaging
 import firebase_config
 
@@ -21,18 +20,24 @@ def register_user(request):
     if not email or not password:
         return Response({'error': 'Email and password required'}, status=400)
 
-    if User.objects.filter(username=email).exists():
+    existing_user = users_collection.find_one({"email": email})
+
+    if existing_user:
         return Response({'error': 'User already exists'}, status=400)
 
-    user = User.objects.create_user(
+    users_collection.insert_one({
+        "email": email,
+        "password": make_password(password),
+    })
+
+    User.objects.get_or_create(
         username=email,
-        email=email,
-        password=password
+        defaults={"email": email}
     )
 
     return Response({
         'message': 'User created successfully',
-        'email': user.email,
+        'email': email,
     }, status=201)
 
 
@@ -42,19 +47,33 @@ def login_user(request):
     email = request.data.get('email')
     password = request.data.get('password')
 
-    user = authenticate(username=email, password=password)
+    if not email or not password:
+        return Response({'error': 'Email and password required'}, status=400)
 
-    if user is None:
+    mongo_user = users_collection.find_one({"email": email})
+
+    if not mongo_user:
+        return Response({'error': 'User not found. Please register first.'}, status=401)
+
+    if not check_password(password, mongo_user["password"]):
         return Response({'error': 'Invalid email or password'}, status=401)
 
-    refresh = RefreshToken.for_user(user)
+    django_user, created = User.objects.get_or_create(
+        username=email,
+        defaults={"email": email}
+    )
+
+    if created:
+        django_user.set_unusable_password()
+        django_user.save()
+
+    refresh = RefreshToken.for_user(django_user)
 
     return Response({
         'access': str(refresh.access_token),
         'refresh': str(refresh),
-        'email': user.email,
+        'email': email,
     }, status=200)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
