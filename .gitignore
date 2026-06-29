@@ -56,3 +56,7 @@ backend/firebase-service-account.json
 *.pyo
 *.pyd
 .env
+*.zip
+*.rar
+*.7z
+
