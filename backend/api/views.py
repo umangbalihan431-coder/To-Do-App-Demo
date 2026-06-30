@@ -160,7 +160,9 @@ def todos(request):
     user_email = request.user.email
 
     if request.method == 'GET':
-        user_todos = list(todos_collection.find({"user_email": user_email}))
+        user_todos = list(
+    todos_collection.find({"user_email": user_email}).sort("created_at", -1)
+)
 
         for todo in user_todos:
             todo["_id"] = str(todo["_id"])
@@ -174,11 +176,11 @@ def todos(request):
             return Response({"error": "Task name is required"}, status=400)
 
         todo = {
-            "user_email": user_email,
-            "task_name": task_name,
-            "completed": False,
-        }
-
+    "user_email": user_email,
+    "task_name": task_name,
+    "completed": False,
+    "created_at": datetime.now(timezone.utc).isoformat(),
+}
         result = todos_collection.insert_one(todo)
         todo["_id"] = str(result.inserted_id)
 

@@ -289,54 +289,79 @@ class _GalleryScreenState extends State<GalleryScreen> {
       },
     );
   }
-
-  Widget imageTile(GalleryImageModel image) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (_, animation, _) =>
-                FullScreenImage(imageUrl: image.imageUrl),
-            transitionsBuilder: (_, animation, _, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-          ),
-        );
-      },
-      onLongPress: () => confirmDelete(image.id),
-      child: Hero(
-        tag: image.imageUrl,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            color: AppColors.card,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha((0.08 * 255).round()),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
+String formatDate(String value) {
+  try {
+    final d = DateTime.parse(value).toLocal();
+    return "${d.day}/${d.month}/${d.year} ${d.hour}:${d.minute.toString().padLeft(2, '0')}";
+  } catch (_) {
+    return value;
+  }
+}
+ Widget imageTile(GalleryImageModel image) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, animation, __) =>
+              FullScreenImage(imageUrl: image.imageUrl),
+          transitionsBuilder: (_, animation, __, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      );
+    },
+    onLongPress: () => confirmDelete(image.id),
+    child: Hero(
+      tag: image.imageUrl,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          color: AppColors.card,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha((0.08 * 255).round()),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Image.network(
+                image.imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(
+                    child: Icon(
+                      Icons.broken_image_rounded,
+                      color: AppColors.muted,
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Image.network(
-            image.imageUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return const Center(
-                child: Icon(
-                  Icons.broken_image_rounded,
-                  color: AppColors.muted,
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+              color: Colors.white,
+              child: Text(
+                formatDate(image.createdAt),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey,
                 ),
-              );
-            },
-          ),
+              ),
+            ),
+          ],
         ),
       ),
-    );
-  }
-
+    ),
+  );
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -462,23 +462,35 @@ class _HomePageState extends State<HomePage> {
                   ),
                 )
               else
-                SliverList.builder(
-                  itemCount: toDoList.length,
-                  itemBuilder: (context, index) {
-                    final todo = toDoList[index];
+                SliverPadding(
+  padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+  sliver: SliverGrid(
+    delegate: SliverChildBuilderDelegate(
+      (context, index) {
+        final todo = toDoList[index];
 
-                    return AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      child: ToDoTile(
-                        key: ValueKey(todo.id),
-                        taskName: todo.taskName,
-                        taskCompleted: todo.completed,
-                        onChanged: (value) => checkBoxChanged(value, index),
-                        deleteFunction: (context) => deleteTask(index),
-                      ),
-                    );
-                  },
-                ),
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: ToDoTile(
+            key: ValueKey(todo.id),
+            taskName: todo.taskName,
+            taskCompleted: todo.completed,
+            createdAt: todo.createdAt,
+            onChanged: (value) => checkBoxChanged(value, index),
+            deleteFunction: (context) => deleteTask(index),
+          ),
+        );
+      },
+      childCount: toDoList.length,
+    ),
+    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 2,
+      crossAxisSpacing: 14,
+      mainAxisSpacing: 14,
+      childAspectRatio: 1.0,
+    ),
+  ),
+),
               const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
           ),
