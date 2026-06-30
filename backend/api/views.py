@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from bson import ObjectId
+from s3 import upload_file_to_s3
 from db import (
     users_collection,
     todos_collection,
@@ -17,6 +18,67 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_media(request):
+    user_email = request.user.email
+    file_obj = request.FILES.get("file") or request.FILES.get("image")
+
+    if not file_obj:
+        return Response({"error": "File is required"}, status=400)
+
+    try:
+        file_url, s3_key = upload_file_to_s3(file_obj, user_email)
+
+        original_name = file_obj.name or ""
+        file_name_lower = original_name.lower()
+        content_type = getattr(file_obj, "content_type", "") or ""
+
+        if (
+            content_type.startswith("image/")
+            or file_name_lower.endswith((".jpg", ".jpeg", ".png", ".webp", ".heic"))
+        ):
+            media_type = "image"
+        elif content_type == "application/pdf" or file_name_lower.endswith(".pdf"):
+            media_type = "pdf"
+        else:
+            media_type = "document"
+
+        media_doc = {
+            "user_email": user_email,
+            "file_url": file_url,
+            "image_url": file_url,
+            "s3_key": s3_key,
+            "file_name": original_name,
+            "content_type": content_type,
+            "media_type": media_type,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        result = images_collection.insert_one(media_doc)
+        media_doc["_id"] = str(result.inserted_id)
+
+        return Response(media_doc, status=201)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_media(request):
+    user_email = request.user.email
+
+    media = list(
+        images_collection.find({"user_email": user_email}).sort("created_at", -1)
+    )
+
+    for item in media:
+        item["_id"] = str(item["_id"])
+        if "file_url" not in item and "image_url" in item:
+            item["file_url"] = item["image_url"]
+        if "media_type" not in item:
+            item["media_type"] = "image"
+
+    return Response(media, status=200)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -98,7 +160,9 @@ def todos(request):
     user_email = request.user.email
 
     if request.method == 'GET':
-        user_todos = list(todos_collection.find({"user_email": user_email}))
+        user_todos = list(
+    todos_collection.find({"user_email": user_email}).sort("created_at", -1)
+)
 
         for todo in user_todos:
             todo["_id"] = str(todo["_id"])
@@ -112,11 +176,11 @@ def todos(request):
             return Response({"error": "Task name is required"}, status=400)
 
         todo = {
-            "user_email": user_email,
-            "task_name": task_name,
-            "completed": False,
-        }
-
+    "user_email": user_email,
+    "task_name": task_name,
+    "completed": False,
+    "created_at": datetime.now(timezone.utc).isoformat(),
+}
         result = todos_collection.insert_one(todo)
         todo["_id"] = str(result.inserted_id)
 
