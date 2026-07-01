@@ -11,16 +11,21 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http_parser: ^4.1.2  
+
+  cupertino_icons: ^1.0.8
+  http: ^1.2.2
+  http_parser: ^4.1.2
   mime: ^2.0.0
+
   firebase_core: ^4.11.0
   firebase_messaging: ^16.4.1
   flutter_local_notifications: ^22.0.1
+
   google_fonts: ^8.1.0
-  cupertino_icons: ^1.0.8
-  http: ^1.2.2
+
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+
   flutter_slidable: ^4.0.0
   image_picker: ^1.2.2
   path_provider: ^2.1.6
@@ -28,12 +33,15 @@ dependencies:
   file_selector: ^1.1.0
   flutter_secure_storage: ^10.3.1
   url_launcher: ^6.3.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-    
 
   flutter_lints: ^6.0.0
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/products/

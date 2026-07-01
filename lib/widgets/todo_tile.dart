@@ -69,31 +69,55 @@ class ToDoTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Align(
-              alignment: Alignment.topLeft,
-              child: Checkbox(
-                value: taskCompleted,
-                onChanged: onChanged,
-                activeColor: AppColors.accent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-            ),
-            const Spacer(),
-            Text(
-              taskName,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: AppColors.text,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                decoration: taskCompleted
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-              ),
-            ),
+            Row(
+  crossAxisAlignment: CrossAxisAlignment.center,
+  children: [
+    SizedBox(
+      width: 34,
+      height: 34,
+      child: Checkbox(
+        value: taskCompleted,
+        onChanged: onChanged,
+        activeColor: AppColors.accent,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+      ),
+    ),
+    const SizedBox(width: 8),
+    Expanded(
+      child: Text(
+        taskName,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: AppColors.text,
+          fontSize: 15,
+          fontWeight: FontWeight.w800,
+          height: 1.2,
+          decoration: taskCompleted
+              ? TextDecoration.lineThrough
+              : TextDecoration.none,
+        ),
+      ),
+    ),
+  ],
+),
+
+const Spacer(),
+
+Align(
+  alignment: Alignment.bottomLeft,
+  child: Text(
+    formatDate(createdAt),
+    style: const TextStyle(
+      fontSize: 11,
+      color: AppColors.muted,
+    ),
+  ),
+),
             const SizedBox(height: 8),
             Text(
               formatDate(createdAt),

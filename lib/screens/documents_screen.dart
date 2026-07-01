@@ -42,13 +42,13 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         isLoading = false;
       });
     } catch (_) {
-      if (!mounted) return;
+  if (!mounted) return;
 
-      setState(() {
-        errorMessage = "Could not load documents";
-        isLoading = false;
-      });
-    }
+  setState(() {
+    errorMessage = "Could not load invoices";
+    isLoading = false;
+  });
+}
   }
 
   Future<void> uploadDocument() async {
@@ -138,7 +138,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                "Delete document?",
+                "Delete invoice?",
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 22,
@@ -147,7 +147,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                "This document will be removed.",
+                "This invoice will be removed from your vault.",
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.muted),
               ),
@@ -261,7 +261,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        title: const Text("Documents"),
+        title: const Text("Invoice Vault"),
         actions: [
           IconButton(
             onPressed: fetchDocuments,
@@ -272,7 +272,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: uploadDocument,
         icon: const Icon(Icons.upload_file_rounded),
-        label: const Text("Upload"),
+        label: const Text("Upload Invoice"),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -318,8 +318,8 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                         ),
                         SizedBox(height: 14),
                         Text(
-                          "No documents yet",
-                          style: TextStyle(
+                          "No invoices yet",
+                                                    style: TextStyle(
                             color: AppColors.text,
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
@@ -327,7 +327,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                         ),
                         SizedBox(height: 6),
                         Text(
-                          "Tap Upload to add PDF or document.",
+                          "Upload invoice PDF, bill, or warranty document.",
                           style: TextStyle(color: AppColors.muted),
                         ),
                       ],

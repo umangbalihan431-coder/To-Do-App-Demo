@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
+import 'main_navigation.dart';
 import '../app/app_colors.dart';
 import '../services/auth_service.dart';
-import 'home_page.dart';
 import 'login_page.dart';
 
 class AuthGate extends StatefulWidget {
@@ -54,6 +53,6 @@ class _AuthGateState extends State<AuthGate> {
       );
     }
 
-    return isLoggedIn ? HomePage() : const LoginPage();
+    return isLoggedIn ? const MainNavigation() : const LoginPage();
   }
 }

@@ -1,146 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'gallery_screen.dart';
-import 'documents_screen.dart';
+
 import '../app/app_colors.dart';
-import '../models/todo_model.dart';
 import '../services/auth_service.dart';
-import '../services/todo_service.dart';
-import '../widgets/dialog_box.dart';
-import '../widgets/todo_tile.dart';
+import 'documents_screen.dart';
+import 'gallery_screen.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
-  final TextEditingController _controller = TextEditingController();
-
-  HomePage({super.key});
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  List<TodoModel> toDoList = [];
-  bool isLoading = false;
-  String errorMessage = "";
+  String getEmail() => AuthService.getEmail() ?? "User";
 
-  String getEmail() {
-    return AuthService.getEmail() ?? "User";
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchTodos();
+  String getFirstName() {
+    final email = getEmail();
+    if (!email.contains("@")) return email;
+    return email.split("@").first;
   }
 
   Future<void> resetNotificationCount() async {
     final box = Hive.box('myBox');
     await box.put("NOTIFICATION_COUNT", 0);
-  }
-
-  Future<void> fetchTodos() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = "";
-    });
-
-    try {
-      final todos = await TodoService.fetchTodos();
-
-      if (!mounted) return;
-
-      setState(() {
-        toDoList = todos;
-        isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        errorMessage = "Could not load tasks";
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<void> saveNewTask() async {
-    final taskName = widget._controller.text.trim();
-
-    if (taskName.isEmpty) return;
-
-    Navigator.of(context).pop();
-
-    try {
-      await TodoService.addTodo(taskName);
-      widget._controller.clear();
-      await fetchTodos();
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        errorMessage = "Could not add task";
-      });
-    }
-  }
-
-  Future<void> checkBoxChanged(bool? value, int index) async {
-    final todo = toDoList[index];
-    final newValue = value ?? false;
-
-    setState(() {
-      toDoList[index] = todo.copyWith(completed: newValue);
-    });
-
-    try {
-      await TodoService.updateTodo(
-        todoId: todo.id,
-        completed: newValue,
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        toDoList[index] = todo;
-        errorMessage = "Could not update task";
-      });
-    }
-  }
-
-  void createNewTask() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return DialogBox(
-          controller: widget._controller,
-          onSave: saveNewTask,
-          onCancel: () {
-            widget._controller.clear();
-            Navigator.of(context).pop();
-          },
-        );
-      },
-    );
-  }
-
-  Future<void> deleteTask(int index) async {
-    final todo = toDoList[index];
-
-    setState(() {
-      toDoList.removeAt(index);
-      errorMessage = "";
-    });
-
-    try {
-      await TodoService.deleteTodo(todo.id);
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        toDoList.insert(index, todo);
-        errorMessage = "Could not delete task";
-      });
-    }
   }
 
   Future<void> logout() async {
@@ -151,6 +36,20 @@ class _HomePageState extends State<HomePage> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
+  }
+
+  void openInvoiceVault() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const DocumentsScreen()),
+    );
+  }
+
+  void openProductPhotos() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const GalleryScreen()),
     );
   }
 
@@ -166,14 +65,13 @@ class _HomePageState extends State<HomePage> {
           children: [
             IconButton(
               onPressed: resetNotificationCount,
-              icon: const Icon(Icons.notifications_rounded),
+              icon: const Icon(Icons.notifications_none_rounded),
             ),
             if (count > 0)
               Positioned(
-                right: 6,
-                top: 6,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
+                right: 8,
+                top: 8,
+                child: Container(
                   padding: const EdgeInsets.all(5),
                   decoration: const BoxDecoration(
                     color: AppColors.danger,
@@ -195,59 +93,78 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  int get completedCount {
-    return toDoList.where((todo) => todo.completed).length;
+  Widget sectionTitle(String title, {String? action}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 14),
+      child: Row(
+        children: [
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              color: AppColors.muted,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2.8,
+            ),
+          ),
+          const Spacer(),
+          if (action != null)
+            Text(
+              action,
+              style: const TextStyle(
+                color: AppColors.text,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
-  int get pendingCount {
-    return toDoList.length - completedCount;
-  }
-
-  Widget statCard({
-    required String title,
+  Widget insightCard({
     required String value,
+    required String label,
     required IconData icon,
   }) {
     return Expanded(
       child: Container(
+        height: 116,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(22),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(color: AppColors.line),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.07),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
+              color: Colors.black.withAlpha(12),
+              blurRadius: 22,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              backgroundColor: AppColors.cardSoft,
-              child: Icon(icon, color: AppColors.accent),
+            Icon(icon, color: AppColors.black, size: 24),
+            const Spacer(),
+            Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.text,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.6,
+              ),
             ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: AppColors.text,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppColors.muted,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.muted,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),
@@ -255,247 +172,477 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget featureCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(28),
+      child: Container(
+        width: 162,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: AppColors.line),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(12),
+              blurRadius: 22,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: AppColors.black, size: 32),
+            const SizedBox(height: 22),
+            Text(
+              title,
+              style: const TextStyle(
+                color: AppColors.text,
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+                height: 1.1,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                color: AppColors.muted,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                height: 1.25,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget quickRow(IconData icon, String title, String subtitle, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+        child: Row(
+          children: [
+            Container(
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                color: AppColors.cardSoft,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(icon, color: AppColors.black, size: 26),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: AppColors.text,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.muted),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget productImageCard({
+  required String imagePath,
+  required String title,
+  required String subtitle,
+}) {
+  return Container(
+    width: 250,
+    margin: const EdgeInsets.only(right: 16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(24),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withAlpha(18),
+          blurRadius: 20,
+          offset: const Offset(0, 10),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(24),
+            ),
+            child: Image.asset(
+              imagePath,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          child: Column(
+            children: [
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.text,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  height: 1.15,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.muted,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 40,
+                child: FilledButton(
+                  onPressed: openInvoiceVault,
+                  child: const Text("View details"),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
-    final email = getEmail();
+    final name = getFirstName();
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(
-        title: const Text("Tasks"),
-        actions: [
-          notificationBell(),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => const GalleryScreen(),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.05, 0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-            icon: const Icon(Icons.photo_library_rounded),
-          ),
-
-          IconButton(
-            tooltip: "Documents",
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const DocumentsScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.description_rounded),
-          ),
-          IconButton(
-            onPressed: fetchTodos,
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-          IconButton(
-            onPressed: logout,
-            icon: const Icon(Icons.logout_rounded),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: createNewTask,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text("New"),
-      ),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: fetchTodos,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF2E7D32),
-                          Color(0xFF66BB6A),
-                        ],
+        bottom: false,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 18, 24, 6),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 27,
+                      backgroundColor: AppColors.black,
+                      child: Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : "U",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.accent.withValues(alpha: 0.18),
-                          blurRadius: 22,
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
                     ),
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 28,
-                          backgroundColor: Colors.white,
-                          child: Icon(
-                            Icons.person_rounded,
-                            color: AppColors.accent,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Welcome back",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                email,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 14),
+                   const Spacer(),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.search_rounded, size: 31),
                     ),
-                  ),
+                    notificationBell(),
+                  ],
                 ),
               ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                  child: Row(
-                    children: [
-                      statCard(
-                        title: "Pending",
-                        value: pendingCount.toString(),
-                        icon: Icons.pending_actions_rounded,
+            ),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.black,
+                    borderRadius: BorderRadius.circular(34),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(60),
+                        blurRadius: 30,
+                        offset: const Offset(0, 16),
                       ),
-                      const SizedBox(width: 12),
-                      statCard(
-                        title: "Done",
-                        value: completedCount.toString(),
-                        icon: Icons.task_alt_rounded,
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Text(
+                            "FIXBRIDGE",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 3,
+                            ),
+                          ),
+                          Spacer(),
+                          Icon(
+                            Icons.verified_rounded,
+                            color: AppColors.gold,
+                            size: 24,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        "digital ownership\nwallet",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 34,
+                          fontWeight: FontWeight.w900,
+                          height: 1.05,
+                          letterSpacing: -1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        "store invoices, track warranties and protect every product you own.",
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          height: 1.45,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton(
+                              onPressed: openInvoiceVault,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: AppColors.black,
+                              ),
+                              child: const Text("Upload invoice"),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            height: 50,
+                            width: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(18),
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ),
-              if (errorMessage.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.danger.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Text(
-                        errorMessage,
-                        style: const TextStyle(color: AppColors.danger),
-                      ),
-                    ),
-                  ),
-                ),
-              if (isLoading)
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                ),
-              if (toDoList.isEmpty && !isLoading)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(
-                          Icons.task_alt_rounded,
-                          color: AppColors.muted,
-                          size: 62,
+            ),
+
+            SliverToBoxAdapter(
+  child: sectionTitle("Ownership Insights"),
+),
+
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        insightCard(
+                          value: "24",
+                          label: "products",
+                          icon: Icons.inventory_2_rounded,
                         ),
-                        SizedBox(height: 14),
-                        Text(
-                          "No tasks yet",
-                          style: TextStyle(
-                            color: AppColors.text,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          "Tap New to create your first task.",
-                          style: TextStyle(
-                            color: AppColors.muted,
-                            fontSize: 14,
-                          ),
+                        const SizedBox(width: 12),
+                        insightCard(
+                          value: "18",
+                          label: "active warranties",
+                          icon: Icons.verified_user_rounded,
                         ),
                       ],
                     ),
-                  ),
-                )
-              else
-                SliverPadding(
-  padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-  sliver: SliverGrid(
-    delegate: SliverChildBuilderDelegate(
-      (context, index) {
-        final todo = toDoList[index];
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        insightCard(
+                          value: "₹5.2L",
+                          label: "protected value",
+                          icon: Icons.shield_rounded,
+                        ),
+                        const SizedBox(width: 12),
+                        insightCard(
+                          value: "3",
+                          label: "expiring soon",
+                          icon: Icons.timer_rounded,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
-        return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
-          child: ToDoTile(
-            key: ValueKey(todo.id),
-            taskName: todo.taskName,
-            taskCompleted: todo.completed,
-            createdAt: todo.createdAt,
-            onChanged: (value) => checkBoxChanged(value, index),
-            deleteFunction: (context) => deleteTask(index),
-          ),
-        );
-      },
-      childCount: toDoList.length,
-    ),
-    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 2,
-      crossAxisSpacing: 14,
-      mainAxisSpacing: 14,
-      childAspectRatio: 1.0,
+            SliverToBoxAdapter(
+  child: sectionTitle("For You", action: "view all ›"),
+),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 190,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+SliverToBoxAdapter(
+  child: sectionTitle("Your Products", action: "view all ›"),
+),
+
+SliverToBoxAdapter(
+  child: SizedBox(
+    height: 360,
+    child: ListView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      children: [
+        productImageCard(
+          imagePath: "assets/products/macbook.jpg",
+          title: "MacBook Pro",
+          subtitle: "Warranty active",
+        ),
+        productImageCard(
+          imagePath: "assets/products/iphone.jpg",
+          title: "iPhone 17",
+          subtitle: "Invoice stored",
+        ),
+        productImageCard(
+          imagePath: "assets/products/sony_camera.jpg",
+          title: "Sony Camera",
+          subtitle: "Service ready",
+        ),
+      ],
     ),
   ),
 ),
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-            ],
-          ),
+
+SliverToBoxAdapter(
+  child: SizedBox(
+    height: 360,
+    child: ListView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      children: [
+        productImageCard(
+          imagePath: "assets/products/macbook.jpg",
+          title: "MacBook Pro",
+          subtitle: "Warranty active",
+        ),
+        productImageCard(
+          imagePath: "assets/products/iphone.jpg",
+          title: "iPhone 17",
+          subtitle: "Invoice stored",
+        ),
+        productImageCard(
+          imagePath: "assets/products/sony_camera.jpg",
+          title: "Sony Camera",
+          subtitle: "Service ready",
+        ),
+      ],
+    ),
+  ),
+),            SliverToBoxAdapter(
+  child: sectionTitle("Explore FixBridge"),
+),
+
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  quickRow(
+                    Icons.history_rounded,
+                    "invoice history",
+                    "view every uploaded invoice",
+                    openInvoiceVault,
+                  ),
+                  quickRow(
+                    Icons.inventory_rounded,
+                    "product ownership wallet",
+                    "manage appliances, electronics and vehicles",
+                    () {},
+                  ),
+                  quickRow(
+                    Icons.notifications_active_rounded,
+                    "warranty reminders",
+                    "never miss an expiry date",
+                    () {},
+                  ),
+                  quickRow(
+                    Icons.help_outline_rounded,
+                    "contact support",
+                    "get help with products and claims",
+                    () {},
+                  ),
+                  quickRow(
+                    Icons.logout_rounded,
+                    "logout",
+                    "securely sign out from this device",
+                    logout,
+                  ),
+                ],
+              ),
+            ),
+
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 128),
+            ),
+          
+        ),
+      ),
+    )
+              ],
         ),
       ),
     );
+    
   }
 }

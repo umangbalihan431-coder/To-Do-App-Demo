@@ -166,7 +166,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  "Upload Image",
+                  "Upload Photo",
                   style: TextStyle(
                     color: AppColors.text,
                     fontSize: 22,
@@ -182,7 +182,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       color: AppColors.accent,
                     ),
                   ),
-                  title: const Text("Take photo"),
+                  title: const Text("Capture invoice"),
                   subtitle: const Text("Open camera and upload image"),
                   onTap: () {
                     Navigator.pop(context);
@@ -197,7 +197,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       color: AppColors.accent,
                     ),
                   ),
-                  title: const Text("Choose image"),
+                  title: const Text("Choose from gallery"),
                   subtitle: const Text("Upload image from gallery"),
                   onTap: () {
                     Navigator.pop(context);
@@ -245,7 +245,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                "Delete image?",
+                "Delete photo?",
                 style: TextStyle(
                   color: AppColors.text,
                   fontSize: 22,
@@ -254,7 +254,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                "This image will be removed from your gallery.",
+                "This product photo will be removed.",
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.muted),
               ),
@@ -303,9 +303,9 @@ String formatDate(String value) {
       Navigator.push(
         context,
         PageRouteBuilder(
-          pageBuilder: (_, animation, __) =>
+          pageBuilder: (_, animation, _) =>
               FullScreenImage(imageUrl: image.imageUrl),
-          transitionsBuilder: (_, animation, __, child) {
+          transitionsBuilder: (_, animation, _, child) {
             return FadeTransition(opacity: animation, child: child);
           },
         ),
@@ -367,7 +367,7 @@ String formatDate(String value) {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        title: const Text("Gallery"),
+        title: const Text("Invoice Photos"),
         actions: [
           IconButton(
             onPressed: fetchImages,
@@ -424,7 +424,7 @@ String formatDate(String value) {
                         ),
                         SizedBox(height: 14),
                         Text(
-                          "No images yet",
+                          "No invoice photos yet",
                           style: TextStyle(
                             color: AppColors.text,
                             fontSize: 22,
@@ -433,7 +433,7 @@ String formatDate(String value) {
                         ),
                         SizedBox(height: 6),
                         Text(
-                          "Tap Upload to add images.",
+                          "Capture or upload invoice photos.",
                           style: TextStyle(color: AppColors.muted),
                         ),
                       ],

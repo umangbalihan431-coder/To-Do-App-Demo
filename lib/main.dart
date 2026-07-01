@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Todo Cloud",
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.lightTheme(),
       home: const AuthGate(),
     );
   }
