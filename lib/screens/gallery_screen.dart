@@ -304,7 +304,10 @@ String formatDate(String value) {
         context,
         PageRouteBuilder(
           pageBuilder: (_, animation, _) =>
-              FullScreenImage(imageUrl: image.imageUrl),
+              FullScreenImage(
+  imageUrl: image.imageUrl,
+  heroTag: image.imageUrl,
+),
           transitionsBuilder: (_, animation, _, child) {
             return FadeTransition(opacity: animation, child: child);
           },

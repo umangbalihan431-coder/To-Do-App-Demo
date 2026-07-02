@@ -5,35 +5,34 @@ import '../models/gallery_image_model.dart';
 import 'api_service.dart';
 
 class MediaService {
+  static Future<List<GalleryImageModel>> fetchAllMedia() async {
+  final response = await ApiService.get(ApiService.userMediaUrl);
+
+  if (response.statusCode != 200) {
+    throw Exception("Failed to fetch media");
+  }
+
+  final List data = jsonDecode(response.body);
+
+  return data
+      .map<GalleryImageModel>((item) => GalleryImageModel.fromJson(item))
+      .toList();
+}
+
   static Future<List<GalleryImageModel>> fetchImages() async {
-    final response = await ApiService.get(ApiService.userImagesUrl);
+  final response = await ApiService.get(ApiService.userImagesUrl);
 
-    if (response.statusCode != 200) {
-      throw Exception("Failed to fetch images");
-    }
-
-    final List data = jsonDecode(response.body);
-
-    return data
-        .map<GalleryImageModel>((item) => GalleryImageModel.fromJson(item))
-        .where((item) => item.isImage)
-        .toList();
+  if (response.statusCode != 200) {
+    throw Exception("Failed to fetch images");
   }
 
-  static Future<List<GalleryImageModel>> fetchDocuments() async {
-    final response = await ApiService.get(ApiService.userMediaUrl);
+  final List data = jsonDecode(response.body);
 
-    if (response.statusCode != 200) {
-      throw Exception("Failed to fetch documents");
-    }
-
-    final List data = jsonDecode(response.body);
-
-    return data
-        .map<GalleryImageModel>((item) => GalleryImageModel.fromJson(item))
-        .where((item) => !item.isImage)
-        .toList();
-  }
+  return data
+      .map<GalleryImageModel>((item) => GalleryImageModel.fromJson(item))
+      .where((item) => item.isImage)
+      .toList();
+}
 
   static Future<void> uploadImage(File file) async {
     final response = await ApiService.uploadImage(

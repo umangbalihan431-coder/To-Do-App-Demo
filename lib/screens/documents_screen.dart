@@ -4,6 +4,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'full_screen_image.dart';
 
 import '../app/app_colors.dart';
 import '../models/gallery_image_model.dart';
@@ -18,7 +19,14 @@ class DocumentsScreen extends StatefulWidget {
 
 class _DocumentsScreenState extends State<DocumentsScreen>
     with SingleTickerProviderStateMixin {
-  List<GalleryImageModel> documents = [];
+  List<GalleryImageModel> allMedia = [];
+int selectedTab = 0; // 0 = Photos, 1 = Documents
+
+List<GalleryImageModel> get photos =>
+    allMedia.where((item) => item.isImage).toList();
+
+List<GalleryImageModel> get documents =>
+    allMedia.where((item) => !item.isImage).toList();
   bool isLoading = false;
   String errorMessage = "";
 
@@ -61,12 +69,12 @@ class _DocumentsScreenState extends State<DocumentsScreen>
     });
 
     try {
-      final data = await MediaService.fetchDocuments();
+      final data = await MediaService.fetchAllMedia();
 
       if (!mounted) return;
 
       setState(() {
-        documents = data;
+        allMedia = data;
         isLoading = false;
       });
     } catch (_) {
@@ -300,12 +308,12 @@ class _DocumentsScreenState extends State<DocumentsScreen>
           ],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Icon(
               documentIcon(document),
               color: AppColors.danger,
-              size: 42,
+              size: 34,
             ),
             const SizedBox(height: 10),
             Text(
@@ -315,7 +323,7 @@ class _DocumentsScreenState extends State<DocumentsScreen>
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: AppColors.text,
-                fontSize: 12,
+                fontSize: 10,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -332,6 +340,52 @@ class _DocumentsScreenState extends State<DocumentsScreen>
       ),
     );
   }
+  Widget photoTile(GalleryImageModel image) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => FullScreenImage(
+  imageUrl: image.imageUrl,
+  heroTag: image.id,
+),
+        ),
+      );
+    },
+    child: Hero(
+      tag: image.id,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.network(
+              image.imageUrl,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, progress) {
+                if (progress == null) return child;
+
+                return Container(
+                  color: Colors.grey.shade200,
+                  child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              },
+              errorBuilder: (_, __, ___) => Container(
+                color: Colors.grey.shade200,
+                child: const Icon(Icons.image_not_supported),
+              ),
+            ),
+
+            
+          ],
+        ),
+      ),
+    ),
+  );
+}
 
   Widget navAction(IconData icon, String label, VoidCallback onTap) {
     return InkWell(
@@ -398,6 +452,57 @@ class _DocumentsScreenState extends State<DocumentsScreen>
     );
   }
 
+  Widget vaultTabs() {
+  return Padding(
+    padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
+    child: Container(
+      height: 48,
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: AppColors.cardSoft,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          tabButton("Photos", 0),
+          tabButton("Documents", 1),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget tabButton(String title, int index) {
+  final selected = selectedTab == index;
+
+  return Expanded(
+    child: GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedTab = index;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected ? AppColors.black : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: selected ? Colors.white : AppColors.muted,
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -434,12 +539,15 @@ class _DocumentsScreenState extends State<DocumentsScreen>
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
+              SliverToBoxAdapter(
+  child: vaultTabs(),
+),
               if (errorMessage.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: AppColors.danger.withAlpha(30),
                         borderRadius: BorderRadius.circular(18),
@@ -486,21 +594,28 @@ class _DocumentsScreenState extends State<DocumentsScreen>
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
-                  sliver: SliverGrid(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => documentTile(documents[index]),
-                      childCount: documents.length,
-                    ),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 14,
-                      mainAxisSpacing: 14,
-                      childAspectRatio: 0.92,
-                    ),
-                  ),
-                ),
+  padding: const EdgeInsets.symmetric(horizontal: 18),
+  sliver: SliverGrid(
+    delegate: SliverChildBuilderDelegate(
+      (context, index) {
+        final items = selectedTab == 0 ? photos : documents;
+
+        return selectedTab == 0
+            ? photoTile(items[index])
+            : documentTile(items[index]);
+      },
+      childCount:
+          selectedTab == 0 ? photos.length : documents.length,
+    ),
+    gridDelegate:
+        SliverGridDelegateWithFixedCrossAxisCount(
+  crossAxisCount: selectedTab == 0 ? 2 : 2,
+  crossAxisSpacing: 14,
+  mainAxisSpacing: 14,
+  childAspectRatio: selectedTab == 0 ? 0.82 : 0.92,
+),
+  ),
+),
             ],
           ),
         ),

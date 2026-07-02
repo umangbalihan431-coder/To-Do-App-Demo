@@ -133,7 +133,7 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.line),
         boxShadow: [
           BoxShadow(
@@ -189,13 +189,13 @@ class _HomePageState extends State<HomePage> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         width: 162,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppColors.line),
           boxShadow: [
             BoxShadow(
@@ -247,7 +247,7 @@ class _HomePageState extends State<HomePage> {
               width: 38,
               decoration: BoxDecoration(
                 color: AppColors.cardSoft,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(15),
               ),
               child: Icon(icon, color: AppColors.black, size: 26),
             ),
@@ -292,7 +292,7 @@ class _HomePageState extends State<HomePage> {
     margin: const EdgeInsets.only(right: 16),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(20),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withAlpha(18),
@@ -352,7 +352,7 @@ class _HomePageState extends State<HomePage> {
         fontWeight: FontWeight.w700,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
     ),
     onPressed: openInvoiceVault,
@@ -416,7 +416,7 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.black,
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withAlpha(60),
