@@ -529,13 +529,7 @@ class _HomePageState extends State<HomePage> {
             SliverToBoxAdapter(
   child: sectionTitle("For You", action: "view all ›"),
 ),
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 190,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-SliverToBoxAdapter(
+ SliverToBoxAdapter(
   child: sectionTitle("Your Products", action: "view all ›"),
 ),
 
@@ -565,33 +559,7 @@ SliverToBoxAdapter(
     ),
   ),
 ),
-
-SliverToBoxAdapter(
-  child: SizedBox(
-    height: 360,
-    child: ListView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      children: [
-        productImageCard(
-          imagePath: "assets/products/macbook.jpg",
-          title: "MacBook Pro",
-          subtitle: "Warranty active",
-        ),
-        productImageCard(
-          imagePath: "assets/products/iphone.jpg",
-          title: "iPhone 17",
-          subtitle: "Invoice stored",
-        ),
-        productImageCard(
-          imagePath: "assets/products/sony_camera.jpg",
-          title: "Sony Camera",
-          subtitle: "Service ready",
-        ),
-      ],
-    ),
-  ),
-),            SliverToBoxAdapter(
+            SliverToBoxAdapter(
   child: sectionTitle("Explore FixBridge"),
 ),
 
@@ -632,17 +600,12 @@ SliverToBoxAdapter(
               ),
             ),
 
-            const SliverToBoxAdapter(
+                       const SliverToBoxAdapter(
               child: SizedBox(height: 128),
             ),
-          
-        ),
-      ),
-    )
-              ],
+          ],
         ),
       ),
     );
-    
   }
 }
