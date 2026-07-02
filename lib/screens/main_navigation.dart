@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app/app_colors.dart';
 import 'documents_screen.dart';
 import 'home_page.dart';
+import 'upload_hub_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -21,7 +22,7 @@ class _MainNavigationState extends State<MainNavigation>
 
   late final List<Widget> pages = [
     const HomePage(),
-    const Center(child: Text("Wallet")),
+    const DocumentsScreen(),
     const SizedBox(),
     const Center(child: Text("Warranty")),
     const Center(child: Text("Profile")),
@@ -60,7 +61,7 @@ class _MainNavigationState extends State<MainNavigation>
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 420),
-        pageBuilder: (_, animation, __) => const DocumentsScreen(),
+        pageBuilder: (_, animation, __) => const UploadHubScreen(),
         transitionsBuilder: (_, animation, __, child) {
           final curve = CurvedAnimation(
             parent: animation,
@@ -139,7 +140,7 @@ class _MainNavigationState extends State<MainNavigation>
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             navItem(Icons.home_rounded, "HOME", 0),
-            navItem(Icons.inventory_2_rounded, "WALLET", 1),
+            navItem(Icons.receipt_long_rounded, "INVOICE", 1),
             const SizedBox(width: 76),
             navItem(Icons.verified_user_rounded, "WARRANTY", 3),
             navItem(Icons.person_rounded, "PROFILE", 4),

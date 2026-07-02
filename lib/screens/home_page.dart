@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+import 'upload_hub_screen.dart';
 import '../app/app_colors.dart';
 import '../services/auth_service.dart';
 import 'documents_screen.dart';
@@ -40,11 +40,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void openInvoiceVault() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const DocumentsScreen()),
-    );
-  }
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const UploadHubScreen()),
+  );
+}
 
   void openProductPhotos() {
     Navigator.push(
@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             IconButton(
               onPressed: resetNotificationCount,
-              icon: const Icon(Icons.notifications_none_rounded),
+              icon: const Icon(Icons.notifications_none_rounded, size: 20),
             ),
             if (count > 0)
               Positioned(
@@ -122,61 +122,46 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget insightCard({
+Widget insightCard({
   required String value,
   required String label,
   required IconData icon,
 }) {
   return Expanded(
     child: Container(
-      height: 90,
-      padding: const EdgeInsets.all(12),
+      height: 68,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(12),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: Colors.black.withAlpha(8),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.topLeft,
-        child: SizedBox(
-          width: 110,
-          height: 72,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: AppColors.black, size: 16),
-              const Spacer(),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.text,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, color: AppColors.black, size: 16),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              "$value $label",
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.text,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                height: 1.15,
               ),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppColors.muted,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     ),
   );
@@ -189,13 +174,13 @@ class _HomePageState extends State<HomePage> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
         width: 162,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: AppColors.line),
           boxShadow: [
             BoxShadow(
@@ -243,13 +228,13 @@ class _HomePageState extends State<HomePage> {
         child: Row(
           children: [
             Container(
-              height: 38,
-              width: 38,
+              height: 32,
+              width: 32,
               decoration: BoxDecoration(
                 color: AppColors.cardSoft,
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: AppColors.black, size: 26),
+              child: Icon(icon, color: AppColors.black, size: 21),
             ),
             const SizedBox(width: 18),
             Expanded(
@@ -260,7 +245,7 @@ class _HomePageState extends State<HomePage> {
                     title,
                     style: const TextStyle(
                       color: AppColors.text,
-                      fontSize: 14,
+                      fontSize: 11,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -269,7 +254,7 @@ class _HomePageState extends State<HomePage> {
                     subtitle,
                     style: const TextStyle(
                       color: AppColors.muted,
-                      fontSize: 10,
+                      fontSize: 9,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -292,7 +277,8 @@ class _HomePageState extends State<HomePage> {
     margin: const EdgeInsets.only(right: 16),
     decoration: BoxDecoration(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: AppColors.line, width: 1),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withAlpha(18),
@@ -306,9 +292,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         Expanded(
           child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
+          borderRadius: BorderRadius.zero,
             child: Image.asset(
               imagePath,
               fit: BoxFit.cover,
@@ -352,7 +336,7 @@ class _HomePageState extends State<HomePage> {
         fontWeight: FontWeight.w700,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
       ),
     ),
     onPressed: openInvoiceVault,
@@ -386,13 +370,13 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 22,
+                      radius: 17,
                       backgroundColor: AppColors.black,
                       child: Text(
                         name.isNotEmpty ? name[0].toUpperCase() : "U",
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 19,
+                          fontSize: 15,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -401,7 +385,7 @@ class _HomePageState extends State<HomePage> {
                    const Spacer(),
                     IconButton(
                       onPressed: () {},
-                      icon: const Icon(Icons.search_rounded, size: 27),
+                      icon: const Icon(Icons.search_rounded, size: 20),
                     ),
                     notificationBell(),
                   ],
@@ -416,7 +400,7 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.black,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withAlpha(60),

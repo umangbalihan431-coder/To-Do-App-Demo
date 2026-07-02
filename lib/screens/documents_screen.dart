@@ -516,23 +516,7 @@ Widget tabButton(String title, int index) {
           ),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: uploadCameraButton(),
-      bottomNavigationBar: BottomAppBar(
-        height: 88,
-        color: AppColors.navBg,
-        elevation: 18,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 7,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            navAction(Icons.photo_library_rounded, "GALLERY", uploadFromGallery),
-            const SizedBox(width: 76),
-            navAction(Icons.picture_as_pdf_rounded, "DOCUMENT", uploadDocument),
-          ],
-        ),
-      ),
+      
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: fetchDocuments,
