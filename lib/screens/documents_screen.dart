@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../app/app_colors.dart';
@@ -15,15 +16,42 @@ class DocumentsScreen extends StatefulWidget {
   State<DocumentsScreen> createState() => _DocumentsScreenState();
 }
 
-class _DocumentsScreenState extends State<DocumentsScreen> {
+class _DocumentsScreenState extends State<DocumentsScreen>
+    with SingleTickerProviderStateMixin {
   List<GalleryImageModel> documents = [];
   bool isLoading = false;
   String errorMessage = "";
 
+  final ImagePicker picker = ImagePicker();
+
+  late final AnimationController uploadController;
+  late final Animation<double> uploadMove;
+  late final Animation<double> uploadScale;
+
   @override
   void initState() {
     super.initState();
+
+    uploadController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 360),
+    );
+
+    uploadMove = Tween<double>(begin: 0, end: -10).animate(
+      CurvedAnimation(parent: uploadController, curve: Curves.easeOutCubic),
+    );
+
+    uploadScale = Tween<double>(begin: 1, end: 1.06).animate(
+      CurvedAnimation(parent: uploadController, curve: Curves.easeOutCubic),
+    );
+
     fetchDocuments();
+  }
+
+  @override
+  void dispose() {
+    uploadController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchDocuments() async {
@@ -42,13 +70,65 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
         isLoading = false;
       });
     } catch (_) {
-  if (!mounted) return;
+      if (!mounted) return;
 
-  setState(() {
-    errorMessage = "Could not load invoices";
-    isLoading = false;
-  });
-}
+      setState(() {
+        errorMessage = "Could not load invoices";
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> uploadPickedFile(File file) async {
+    try {
+      setState(() {
+        isLoading = true;
+        errorMessage = "";
+      });
+
+      await MediaService.uploadDocument(file);
+      await fetchDocuments();
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage = "Could not upload invoice";
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> uploadFromCamera() async {
+    await uploadController.forward();
+
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85,
+      );
+
+      if (image == null) {
+        await uploadController.reverse();
+        return;
+      }
+
+      await uploadPickedFile(File(image.path));
+    } finally {
+      if (mounted) {
+        uploadController.reverse();
+      }
+    }
+  }
+
+  Future<void> uploadFromGallery() async {
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+
+    if (image == null) return;
+
+    await uploadPickedFile(File(image.path));
   }
 
   Future<void> uploadDocument() async {
@@ -73,13 +153,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
 
       if (pickedFile == null) return;
 
-      setState(() {
-        isLoading = true;
-        errorMessage = "";
-      });
-
-      await MediaService.uploadDocument(File(pickedFile.path));
-      await fetchDocuments();
+      await uploadPickedFile(File(pickedFile.path));
     } catch (_) {
       if (!mounted) return;
 
@@ -100,7 +174,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
 
     if (!opened && mounted) {
       setState(() {
-        errorMessage = "Could not open document";
+        errorMessage = "Could not open invoice";
       });
     }
   }
@@ -113,7 +187,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       if (!mounted) return;
 
       setState(() {
-        errorMessage = "Could not delete document";
+        errorMessage = "Could not delete invoice";
       });
     }
   }
@@ -131,11 +205,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.delete_rounded,
-                color: AppColors.danger,
-                size: 42,
-              ),
+              const Icon(Icons.delete_rounded, color: AppColors.danger, size: 42),
               const SizedBox(height: 12),
               const Text(
                 "Delete invoice?",
@@ -190,6 +260,13 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       return Icons.picture_as_pdf_rounded;
     }
 
+    if (name.endsWith(".jpg") ||
+        name.endsWith(".jpeg") ||
+        name.endsWith(".png") ||
+        name.endsWith(".webp")) {
+      return Icons.image_rounded;
+    }
+
     if (name.endsWith(".doc") || name.endsWith(".docx")) {
       return Icons.description_rounded;
     }
@@ -210,13 +287,13 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
       onTap: () => openDocument(document.fileUrl),
       onLongPress: () => confirmDelete(document.id),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha((0.08 * 255).round()),
+              color: Colors.black.withAlpha(18),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),
@@ -228,29 +305,94 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
             Icon(
               documentIcon(document),
               color: AppColors.danger,
-              size: 46,
+              size: 42,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
-              document.fileName.isEmpty ? "Document" : document.fileName,
+              document.fileName.isEmpty ? "Invoice" : document.fileName,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: AppColors.text,
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 5),
             const Text(
               "Tap to open",
               style: TextStyle(
                 color: AppColors.muted,
-                fontSize: 11,
+                fontSize: 10,
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget navAction(IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: SizedBox(
+        width: 86,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: AppColors.navActive, size: 25),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.navActive,
+                fontSize: 8.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget uploadCameraButton() {
+    return AnimatedBuilder(
+      animation: uploadController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, uploadMove.value),
+          child: Transform.scale(
+            scale: uploadScale.value,
+            child: child,
+          ),
+        );
+      },
+      child: GestureDetector(
+        onTap: uploadFromCamera,
+        child: Container(
+          height: 72,
+          width: 72,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.black,
+            border: Border.all(color: Colors.white.withAlpha(150), width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(110),
+                blurRadius: 26,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.photo_camera_rounded,
+            color: Colors.white,
+            size: 30,
+          ),
         ),
       ),
     );
@@ -269,10 +411,22 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: uploadDocument,
-        icon: const Icon(Icons.upload_file_rounded),
-        label: const Text("Upload Invoice"),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: uploadCameraButton(),
+      bottomNavigationBar: BottomAppBar(
+        height: 88,
+        color: AppColors.navBg,
+        elevation: 18,
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 7,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            navAction(Icons.photo_library_rounded, "GALLERY", uploadFromGallery),
+            const SizedBox(width: 76),
+            navAction(Icons.picture_as_pdf_rounded, "DOCUMENT", uploadDocument),
+          ],
+        ),
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -287,7 +441,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.danger.withAlpha((0.12 * 255).round()),
+                        color: AppColors.danger.withAlpha(30),
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: Text(
@@ -305,29 +459,25 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   ),
                 ),
               if (documents.isEmpty && !isLoading)
-                SliverFillRemaining(
+                const SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(
-                          Icons.folder_rounded,
-                          color: AppColors.muted,
-                          size: 64,
-                        ),
+                      children: [
+                        Icon(Icons.folder_rounded, color: AppColors.muted, size: 56),
                         SizedBox(height: 14),
                         Text(
                           "No invoices yet",
-                                                    style: TextStyle(
+                          style: TextStyle(
                             color: AppColors.text,
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                         SizedBox(height: 6),
                         Text(
-                          "Upload invoice PDF, bill, or warranty document.",
+                          "Use Camera, Gallery, or Document below.",
                           style: TextStyle(color: AppColors.muted),
                         ),
                       ],
@@ -336,7 +486,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                 )
               else
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
                   sliver: SliverGrid(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) => documentTile(documents[index]),

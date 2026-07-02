@@ -192,7 +192,7 @@ class _HomePageState extends State<HomePage> {
       borderRadius: BorderRadius.circular(28),
       child: Container(
         width: 162,
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(28),
@@ -449,53 +449,38 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        "Digital Ownership\nWallet",
+                        "Digital Ownership Wallet",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: 19,
                           fontWeight: FontWeight.w900,
                           height: 1.05,
                           letterSpacing: -1.2,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "Store Invoices, Track Warranties and Protect Every Product You Own.",
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          height: 1.45,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: FilledButton(
-                              onPressed: openInvoiceVault,
-                              style: FilledButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: AppColors.black,
-                              ),
-                              child: const Text("Upload invoice"),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
-                            height: 38,
-                            width: 38,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(18),
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            child: const Icon(
-                              Icons.arrow_forward_rounded,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 18),
+                      
+                     SizedBox(
+  height: 38,
+  width: double.infinity,
+  child: FilledButton(
+    onPressed: openInvoiceVault,
+    style: FilledButton.styleFrom(
+      backgroundColor: Colors.white,
+      foregroundColor: AppColors.black,
+      padding: EdgeInsets.zero,
+    ),
+    child: const Text(
+      "Upload invoice",
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w800,
+      ),
+    ),
+  ),
+),
                     ],
                   ),
                 ),
@@ -609,12 +594,7 @@ SliverToBoxAdapter(
                     "get help with products and claims",
                     () {},
                   ),
-                  quickRow(
-                    Icons.logout_rounded,
-                    "logout",
-                    "securely sign out from this device",
-                    logout,
-                  ),
+                
                 ],
               ),
             ),
