@@ -102,9 +102,9 @@ class _HomePageState extends State<HomePage> {
             title.toUpperCase(),
             style: const TextStyle(
               color: AppColors.muted,
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.w900,
-              letterSpacing: 2.8,
+              letterSpacing: 2.4,
             ),
           ),
           const Spacer(),
@@ -123,55 +123,64 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget insightCard({
-    required String value,
-    required String label,
-    required IconData icon,
-  }) {
-    return Expanded(
-      child: Container(
-        height: 116,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: AppColors.line),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(12),
-              blurRadius: 22,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: AppColors.black, size: 24),
-            const Spacer(),
-            Text(
-              value,
-              style: const TextStyle(
-                color: AppColors.text,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.6,
+  required String value,
+  required String label,
+  required IconData icon,
+}) {
+  return Expanded(
+    child: Container(
+      height: 90,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.line),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(12),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          width: 110,
+          height: 72,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: AppColors.black, size: 16),
+              const Spacer(),
+              Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.text,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.muted,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.muted,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    );
-  }
-
+    ),
+  );
+}
   Widget featureCard({
     required IconData icon,
     required String title,
@@ -230,12 +239,12 @@ class _HomePageState extends State<HomePage> {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 11),
         child: Row(
           children: [
             Container(
-              height: 48,
-              width: 48,
+              height: 38,
+              width: 38,
               decoration: BoxDecoration(
                 color: AppColors.cardSoft,
                 borderRadius: BorderRadius.circular(18),
@@ -251,7 +260,7 @@ class _HomePageState extends State<HomePage> {
                     title,
                     style: const TextStyle(
                       color: AppColors.text,
-                      fontSize: 17,
+                      fontSize: 14,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -260,7 +269,7 @@ class _HomePageState extends State<HomePage> {
                     subtitle,
                     style: const TextStyle(
                       color: AppColors.muted,
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -279,7 +288,7 @@ class _HomePageState extends State<HomePage> {
   required String subtitle,
 }) {
   return Container(
-    width: 250,
+    width: 190,
     margin: const EdgeInsets.only(right: 16),
     decoration: BoxDecoration(
       color: Colors.white,
@@ -317,7 +326,7 @@ class _HomePageState extends State<HomePage> {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: AppColors.text,
-                  fontSize: 19,
+                  fontSize: 16,
                   fontWeight: FontWeight.w900,
                   height: 1.15,
                 ),
@@ -328,18 +337,28 @@ class _HomePageState extends State<HomePage> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: AppColors.muted,
-                  fontSize: 13,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 12),
               SizedBox(
-                height: 40,
-                child: FilledButton(
-                  onPressed: openInvoiceVault,
-                  child: const Text("View details"),
-                ),
-              ),
+  height: 34,
+  child: FilledButton(
+    style: FilledButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      textStyle: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+    onPressed: openInvoiceVault,
+    child: const Text("View details"),
+  ),
+),
             ],
           ),
         ),
@@ -351,6 +370,8 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final name = getFirstName();
+    final width = MediaQuery.of(context).size.width;
+    final horizontalPadding = width < 380 ? 18.0 : 24.0;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -365,13 +386,13 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 27,
+                      radius: 22,
                       backgroundColor: AppColors.black,
                       child: Text(
                         name.isNotEmpty ? name[0].toUpperCase() : "U",
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 22,
+                          fontSize: 19,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -380,7 +401,7 @@ class _HomePageState extends State<HomePage> {
                    const Spacer(),
                     IconButton(
                       onPressed: () {},
-                      icon: const Icon(Icons.search_rounded, size: 31),
+                      icon: const Icon(Icons.search_rounded, size: 27),
                     ),
                     notificationBell(),
                   ],
@@ -392,10 +413,10 @@ class _HomePageState extends State<HomePage> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
                 child: Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.black,
-                    borderRadius: BorderRadius.circular(34),
+                    borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withAlpha(60),
@@ -426,28 +447,28 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
                       const Text(
-                        "digital ownership\nwallet",
+                        "Digital Ownership\nWallet",
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 34,
+                          fontSize: 20,
                           fontWeight: FontWeight.w900,
                           height: 1.05,
                           letterSpacing: -1.2,
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 8),
                       const Text(
-                        "store invoices, track warranties and protect every product you own.",
+                        "Store Invoices, Track Warranties and Protect Every Product You Own.",
                         style: TextStyle(
                           color: Colors.white70,
-                          fontSize: 14,
+                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                           height: 1.45,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
@@ -462,8 +483,8 @@ class _HomePageState extends State<HomePage> {
                           ),
                           const SizedBox(width: 12),
                           Container(
-                            height: 50,
-                            width: 50,
+                            height: 38,
+                            width: 38,
                             decoration: BoxDecoration(
                               color: Colors.white.withAlpha(18),
                               borderRadius: BorderRadius.circular(18),
@@ -487,7 +508,7 @@ class _HomePageState extends State<HomePage> {
 
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
                   children: [
                     Row(
@@ -526,19 +547,17 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
 
-            SliverToBoxAdapter(
-  child: sectionTitle("For You", action: "view all ›"),
-),
+            
  SliverToBoxAdapter(
   child: sectionTitle("Your Products", action: "view all ›"),
 ),
 
 SliverToBoxAdapter(
   child: SizedBox(
-    height: 360,
+    height: 285,
     child: ListView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       children: [
         productImageCard(
           imagePath: "assets/products/macbook.jpg",

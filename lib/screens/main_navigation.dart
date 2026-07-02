@@ -11,24 +11,77 @@ class MainNavigation extends StatefulWidget {
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class _MainNavigationState extends State<MainNavigation>
+    with SingleTickerProviderStateMixin {
   int currentIndex = 0;
 
+  late final AnimationController uploadController;
+  late final Animation<double> uploadMove;
+  late final Animation<double> uploadScale;
+
   late final List<Widget> pages = [
-    HomePage(),
-    const DocumentsScreen(),
-    const Center(child: Text("Upload")),
-    const Center(child: Text("Reminders")),
+    const HomePage(),
+    const Center(child: Text("Wallet")),
+    const SizedBox(),
+    const Center(child: Text("Warranty")),
     const Center(child: Text("Profile")),
   ];
 
-  void openUpload() {
-    Navigator.push(
+  @override
+  void initState() {
+    super.initState();
+
+    uploadController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 360),
+    );
+
+    uploadMove = Tween<double>(begin: 0, end: -10).animate(
+      CurvedAnimation(parent: uploadController, curve: Curves.easeOutCubic),
+    );
+
+    uploadScale = Tween<double>(begin: 1, end: 1.06).animate(
+      CurvedAnimation(parent: uploadController, curve: Curves.easeOutCubic),
+    );
+  }
+
+  @override
+  void dispose() {
+    uploadController.dispose();
+    super.dispose();
+  }
+
+  Future<void> openUpload() async {
+    await uploadController.forward();
+
+    if (!mounted) return;
+
+    await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const DocumentsScreen(),
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 420),
+        pageBuilder: (_, animation, __) => const DocumentsScreen(),
+        transitionsBuilder: (_, animation, __, child) {
+          final curve = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
+
+          return FadeTransition(
+            opacity: curve,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.08),
+                end: Offset.zero,
+              ).animate(curve),
+              child: child,
+            ),
+          );
+        },
       ),
     );
+
+    uploadController.reverse();
   }
 
   @override
@@ -39,48 +92,60 @@ class _MainNavigationState extends State<MainNavigation> {
         index: currentIndex,
         children: pages,
       ),
-    floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
-floatingActionButton: Container(
-  height: 78,
-  width: 78,
-  decoration: BoxDecoration(
-    shape: BoxShape.circle,
-    color: AppColors.black,
-    border: Border.all(color: Colors.white.withAlpha(90), width: 1.4),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withAlpha(90),
-        blurRadius: 24,
-        spreadRadius: 1,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: AnimatedBuilder(
+        animation: uploadController,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, uploadMove.value),
+            child: Transform.scale(
+              scale: uploadScale.value,
+              child: child,
+            ),
+          );
+        },
+        child: GestureDetector(
+          onTap: openUpload,
+          child: Container(
+            height: 72,
+            width: 72,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.black,
+              border: Border.all(color: Colors.white.withAlpha(150), width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(110),
+                  blurRadius: 26,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.upload_file_rounded,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
+        ),
       ),
-    ],
-  ),
-  child: IconButton(
-    onPressed: openUpload,
-    icon: const Icon(
-      Icons.upload_file_rounded,
-      color: Colors.white,
-      size: 32,
-    ),
-  ),
-),
       bottomNavigationBar: BottomAppBar(
-  height: 92,
-  color: AppColors.navBg,
-  shape: const CircularNotchedRectangle(),
-  notchMargin: 10,
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceAround,
-    children: [
-      navItem(Icons.home_rounded, "HOME", 0),
-      navItem(Icons.inventory_2_rounded, "WALLET", 1),
-      const SizedBox(width: 74),
-      navItem(Icons.notifications_rounded, "ALERTS", 3),
-      navItem(Icons.person_rounded, "PROFILE", 4),
-    ],
-  ),
-),
+        height: 88,
+        color: AppColors.navBg,
+        elevation: 18,
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 7,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            navItem(Icons.home_rounded, "HOME", 0),
+            navItem(Icons.inventory_2_rounded, "WALLET", 1),
+            const SizedBox(width: 76),
+            navItem(Icons.verified_user_rounded, "WARRANTY", 3),
+            navItem(Icons.person_rounded, "PROFILE", 4),
+          ],
+        ),
+      ),
     );
   }
 
@@ -102,16 +167,18 @@ floatingActionButton: Container(
             Icon(
               icon,
               color: selected ? AppColors.navActive : AppColors.navInactive,
-              size: 27,
+              size: 25,
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 6),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: selected ? AppColors.navActive : AppColors.navInactive,
-                fontSize: 7,
+                fontSize: 7.5,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 1.1,
+                letterSpacing: 1.0,
               ),
             ),
           ],
